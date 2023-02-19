@@ -1,6 +1,15 @@
-# Added method for class Worker: get_message
-# Added method for class Company: send_corporate_email with try except construction
-# Changed format string printing to: f'...'
+calls_counter = {}  # global calls counter storage
+
+
+def count_calls(cb):
+    def wrapper(*a, **kw):
+        try:
+            calls_counter[cb.__name__] += 1
+        except:
+            calls_counter[cb.__name__] = 1
+        return cb(*a, **kw)
+
+    return wrapper
 
 
 class Person:
@@ -13,6 +22,7 @@ class Person:
             looking_position  # looking for this position in next company
         )
 
+    @count_calls
     def say_hi(self):
         print(
             f"Hi! Im {self.name} {self.age} yo my experience {self.experience} years I request a salary of {self.req_salary} $. Im looking for {self.looking_position} position in next company"
@@ -36,12 +46,14 @@ class Worker(Person):
         self.position = position
         self.current_salary = current_salary
 
+    @count_calls
     def say_hi(self):
         super().say_hi()
         print(
             f"Im work in {self.working_now} my position {self.position} and current salary {self.current_salary} $"
         )
 
+    @count_calls
     def _get_message(self, from_company, message):
         print(
             f"[{self.name}] {self.name}, you got message from {from_company.name}: {message}"
@@ -62,6 +74,7 @@ class Company:
         )
 
     # contest among applicants
+    @count_calls
     def contest(self, applicants, count_places):
         # if applicants require salary more than min of his position * 0.3 * max coefficient of overpayment of salary he will skipped
 
@@ -91,10 +104,12 @@ class Company:
             del people[0]
 
     # print current work group
+    @count_calls
     def current_group(self):
         print("Current workers group:", *[i.name for i in self.work_group])
 
     # print all information about company
+    @count_calls
     def about_company(self):
         print("Company name:", self.name)
         print("Company description:", self.description)
@@ -104,10 +119,12 @@ class Company:
         )
 
     # employ without contest in company
+    @count_calls
     def employ(self, person):
         self.work_group.append(person)
 
     # fire person
+    @count_calls
     def fire(self, person):
         group = self.work_group
         for i in range(len(group)):
@@ -117,6 +134,7 @@ class Company:
         self.work_group = group
 
     # send email
+    @count_calls
     def send_corporate_email(self, to_person, message):
         # to_person.get_message(self.name, message)
         try:
@@ -162,12 +180,12 @@ alex = Worker("Alex", 32, 10, 6400, "senior", Diamonds_crime_company, "senior", 
 
 # * testing
 
-# john.say_hi()
+john.say_hi()
 # jack.say_hi()
 # wilson.say_hi()
 # alex.say_hi()
 
-# VVS_company.about_company()
+VVS_company.about_company()
 # Diamonds_crime_company.about_company()
 
 # * Editing group
@@ -194,6 +212,8 @@ Diamonds_crime_company.send_corporate_email(VVS_company, "Are you human or what 
 Diamonds_crime_company.send_corporate_email("Edward", "Are you human or what ?")
 
 print("\n")
+
+print(calls_counter)
 
 # Only Alex can get corporate email from company, because he work in some company
 
